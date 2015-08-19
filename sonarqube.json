@@ -1,0 +1,128 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "sonarqube",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "sonarqube"
+                }
+            },
+            "spec": {
+                "dockerImageRepository": "amdonov/sonarqube"
+            },
+            "status": {
+                "dockerImageRepository": ""
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "sonarqube",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "sonarqube"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "resources": {}
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "sonarqube"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "sonarqube:latest"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "deploymentconfig": "sonarqube"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "deploymentconfig": "sonarqube"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "sonarqube",
+                                "image": "amdonov/sonarqube",
+                                "ports": [
+                                    {
+                                        "containerPort": 9000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "SONAR_JDBC_PASSWORD",
+                                        "value": "sonar"
+                                    },
+                                    {
+                                        "name": "SONAR_JDBC_URL",
+                                        "value": "jdbc:h2:tcp://localhost:9092/sonar"
+                                    },
+                                    {
+                                        "name": "SONAR_JDBC_USERNAME",
+                                        "value": "sonar"
+                                    }
+                                ],
+                                "resources": {}
+                            }
+                        ]
+                    }
+                }
+            },
+            "status": {}
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "sonarqube",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "sonarqube"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "9000-tcp",
+                        "protocol": "TCP",
+                        "port": 9000,
+                        "targetPort": 9000,
+                        "nodePort": 0
+                    }
+                ],
+                "selector": {
+                    "deploymentconfig": "sonarqube"
+                }
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}
